@@ -87,13 +87,16 @@ def analyze_cryptographic_strength(bit_array: Union[ExistenceBitArray, bytes, st
     # Calculate vulnerability score
     # Higher void factor, more void sequences, and deeper void states
     # all contribute to higher vulnerability
-    sequence_weight = sum(
-        void_sequences["single"] * 0.1 +
-        void_sequences["double"] * 0.2 +
-        void_sequences["triple"] * 0.4 +
-        void_sequences["quad"] * 0.6 +
-        void_sequences["quint+"] * 0.8
-    ) / max(1, sum(void_sequences.values()))
+    if isinstance(void_sequences, dict) and void_sequences:
+        sequence_weight = (
+            void_sequences.get("single", 0) * 0.1 +
+            void_sequences.get("double", 0) * 0.2 +
+            void_sequences.get("triple", 0) * 0.4 +
+            void_sequences.get("quad", 0) * 0.6 +
+            void_sequences.get("quint+", 0) * 0.8
+        ) / max(1, sum(void_sequences.values()))
+    else:
+        sequence_weight = 0.0
     
     deep_void_weight = len(deep_voids) / max(1, len(bit_array))
     
@@ -103,13 +106,23 @@ def analyze_cryptographic_strength(bit_array: Union[ExistenceBitArray, bytes, st
         deep_void_weight * 0.2
     )
     
+    # Calculate max negation depth
+    max_negation_depth = 1  # Default is 1 (standard !1)
+    if deep_voids:
+        max_negation_depth = max(depth for _, depth in deep_voids)
+    
+    # Determine if there's a critical void (defined as a void state with depth > 2 or consecutive voids)
+    has_critical_void = max_negation_depth > 2 or (void_sequences.get("triple", 0) > 0 or void_sequences.get("quad", 0) > 0 or void_sequences.get("quint+", 0) > 0)
+    
     return {
         "void_factor": void_factor,
         "void_sequences": void_sequences,
         "deep_voids": deep_voids,
         "vulnerability_score": vulnerability_score,
         "binary_entropy": binary_entropy,
-        "existence_entropy": existence_entropy
+        "existence_entropy": existence_entropy,
+        "max_negation_depth": max_negation_depth,
+        "has_critical_void": has_critical_void
     }
 
 
@@ -140,81 +153,101 @@ def calculate_shannon_entropy(binary_string: str) -> float:
     return entropy
 
 
-def existence_xor(a: Union[ExistenceBitArray, bytes, str], b: Union[ExistenceBitArray, bytes, str]) -> ExistenceBitArray:
+def existence_xor(a: Union[ExistenceBitArray, ExistenceBit, bytes, str], 
+                 b: Union[ExistenceBitArray, ExistenceBit, bytes, str]) -> ExistenceBitArray:
     """
     Perform XOR operation using existence semantics.
     
     Args:
-        a: First operand. Can be an ExistenceBitArray, bytes, or a binary string.
-        b: Second operand. Can be an ExistenceBitArray, bytes, or a binary string.
+        a: First operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
+        b: Second operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
     
     Returns:
         An ExistenceBitArray containing the result of the XOR operation.
     """
     # Convert inputs to ExistenceBitArray if necessary
-    if not isinstance(a, ExistenceBitArray):
+    if isinstance(a, ExistenceBit):
+        a = ExistenceBitArray([a])
+    elif not isinstance(a, ExistenceBitArray):
         a = ExistenceBitArray(a)
-    if not isinstance(b, ExistenceBitArray):
+        
+    if isinstance(b, ExistenceBit):
+        b = ExistenceBitArray([b])
+    elif not isinstance(b, ExistenceBitArray):
         b = ExistenceBitArray(b)
     
     # Perform the XOR operation
     return a ^ b
 
 
-def existence_and(a: Union[ExistenceBitArray, bytes, str], b: Union[ExistenceBitArray, bytes, str]) -> ExistenceBitArray:
+def existence_and(a: Union[ExistenceBitArray, ExistenceBit, bytes, str], 
+                 b: Union[ExistenceBitArray, ExistenceBit, bytes, str]) -> ExistenceBitArray:
     """
     Perform AND operation using existence semantics.
     
     Args:
-        a: First operand. Can be an ExistenceBitArray, bytes, or a binary string.
-        b: Second operand. Can be an ExistenceBitArray, bytes, or a binary string.
+        a: First operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
+        b: Second operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
     
     Returns:
         An ExistenceBitArray containing the result of the AND operation.
     """
     # Convert inputs to ExistenceBitArray if necessary
-    if not isinstance(a, ExistenceBitArray):
+    if isinstance(a, ExistenceBit):
+        a = ExistenceBitArray([a])
+    elif not isinstance(a, ExistenceBitArray):
         a = ExistenceBitArray(a)
-    if not isinstance(b, ExistenceBitArray):
+        
+    if isinstance(b, ExistenceBit):
+        b = ExistenceBitArray([b])
+    elif not isinstance(b, ExistenceBitArray):
         b = ExistenceBitArray(b)
     
     # Perform the AND operation
     return a & b
 
 
-def existence_or(a: Union[ExistenceBitArray, bytes, str], b: Union[ExistenceBitArray, bytes, str]) -> ExistenceBitArray:
+def existence_or(a: Union[ExistenceBitArray, ExistenceBit, bytes, str], 
+                b: Union[ExistenceBitArray, ExistenceBit, bytes, str]) -> ExistenceBitArray:
     """
     Perform OR operation using existence semantics.
     
     Args:
-        a: First operand. Can be an ExistenceBitArray, bytes, or a binary string.
-        b: Second operand. Can be an ExistenceBitArray, bytes, or a binary string.
+        a: First operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
+        b: Second operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
     
     Returns:
         An ExistenceBitArray containing the result of the OR operation.
     """
     # Convert inputs to ExistenceBitArray if necessary
-    if not isinstance(a, ExistenceBitArray):
+    if isinstance(a, ExistenceBit):
+        a = ExistenceBitArray([a])
+    elif not isinstance(a, ExistenceBitArray):
         a = ExistenceBitArray(a)
-    if not isinstance(b, ExistenceBitArray):
+        
+    if isinstance(b, ExistenceBit):
+        b = ExistenceBitArray([b])
+    elif not isinstance(b, ExistenceBitArray):
         b = ExistenceBitArray(b)
     
     # Perform the OR operation
     return a | b
 
 
-def existence_not(a: Union[ExistenceBitArray, bytes, str]) -> ExistenceBitArray:
+def existence_not(a: Union[ExistenceBitArray, ExistenceBit, bytes, str]) -> ExistenceBitArray:
     """
     Perform NOT operation using existence semantics.
     
     Args:
-        a: The operand. Can be an ExistenceBitArray, bytes, or a binary string.
+        a: The operand. Can be an ExistenceBitArray, ExistenceBit, bytes, or a binary string.
     
     Returns:
         An ExistenceBitArray containing the result of the NOT operation.
     """
     # Convert input to ExistenceBitArray if necessary
-    if not isinstance(a, ExistenceBitArray):
+    if isinstance(a, ExistenceBit):
+        a = ExistenceBitArray([a])
+    elif not isinstance(a, ExistenceBitArray):
         a = ExistenceBitArray(a)
     
     # Perform the NOT operation

@@ -8,9 +8,15 @@ showcasing the foundational issues with modern computing.
 
 import random
 import time
+import sys
+import os
+
+# Add the project root to the Python path to enable absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from colorama import init, Fore, Style
-from ..core.existence_bit import ExistenceBit, ExistenceBitArray
-from ..core.existence_math import (
+from core.existence_bit import ExistenceBit, ExistenceBitArray
+from core.existence_math import (
     existence_xor, 
     existence_and, 
     existence_or, 
@@ -72,14 +78,17 @@ def demonstrate_xor_non_reversibility():
         
         # Existence XOR
         exist_result = existence_xor(a, b)
-        exist_display = "1" if exist_result.exists else f"!1 (negation depth: {exist_result.negation_depth})"
+        # Since existence_xor returns an array, we need to access the first bit
+        result_bit = exist_result.bits[0] if len(exist_result.bits) > 0 else ExistenceBit("!1")
+        exist_display = "1" if result_bit.exists else f"!1 (negation depth: {result_bit.negation_depth})"
         
         print(f"\n  {a_display} ⊕ {b_display}:")
         print(f"  Traditional result: {trad_display}")
         print(f"  Existence result: {exist_display}")
         
         # Check if results differ
-        if (trad_result == 1 and exist_result.exists) or (trad_result == 0 and not exist_result.exists and exist_result.negation_depth == 1):
+        result_bit = exist_result.bits[0] if len(exist_result.bits) > 0 else ExistenceBit("!1")
+        if (trad_result == 1 and result_bit.exists) or (trad_result == 0 and not result_bit.exists and result_bit.negation_depth == 1):
             print_success("  Results match semantically ✓")
         else:
             print_error("  Results differ fundamentally ✗")
@@ -104,7 +113,9 @@ def demonstrate_xor_non_reversibility():
         exist_step1 = existence_xor(original, key)
         exist_step2 = existence_xor(exist_step1, key)
         
-        exist_display = "1" if exist_step2.exists else f"!1 (negation depth: {exist_step2.negation_depth})"
+        # Since existence_xor returns an array, we need to access the first bit
+        result_bit = exist_step2.bits[0] if len(exist_step2.bits) > 0 else ExistenceBit("!1")
+        exist_display = "1" if result_bit.exists else f"!1 (negation depth: {result_bit.negation_depth})"
         
         print(f"\n  Original: {original_display}")
         print(f"  Key: {key_display}")
@@ -112,7 +123,8 @@ def demonstrate_xor_non_reversibility():
         print(f"  Existence: {original_display} ⊕ {key_display} ⊕ {key_display} = {exist_display}")
         
         # Check if we got back the original value
-        if (original.exists and exist_step2.exists) or (not original.exists and not exist_step2.exists and original.negation_depth == exist_step2.negation_depth):
+        result_bit = exist_step2.bits[0] if len(exist_step2.bits) > 0 else ExistenceBit("!1")
+        if (original.exists and result_bit.exists) or (not original.exists and not result_bit.exists and original.negation_depth == result_bit.negation_depth):
             print_success("  Reversibility preserved ✓")
         else:
             print_error("  REVERSIBILITY BROKEN ✗")
@@ -193,11 +205,11 @@ def demonstrate_information_loss():
     
     # Create bits with different negation depths
     bits = [
-        ExistenceBit(1),                    # 1
-        ExistenceBit(0),                    # !1
-        ExistenceBit(0, negation_depth=2),  # !!1
-        ExistenceBit(0, negation_depth=3),  # !!!1
-        ExistenceBit(0, negation_depth=4),  # !!!!1
+        ExistenceBit(1),           # 1
+        ExistenceBit(0),           # !1
+        ExistenceBit("!!1"),       # !!1
+        ExistenceBit("!!!1"),      # !!!1
+        ExistenceBit("!!!!1"),     # !!!!1
     ]
     
     # Display information about each bit
@@ -218,22 +230,26 @@ def demonstrate_information_loss():
     for bit in bits:
         display = "1" if bit.exists else "!" * bit.negation_depth + "1"
         not_result = existence_not(bit)
-        not_display = "1" if not_result.exists else "!" * not_result.negation_depth + "1"
+        # Since existence_not returns an array, we need to access the first bit
+        not_bit = not_result.bits[0] if len(not_result.bits) > 0 else ExistenceBit("!1")
+        not_display = "1" if not_bit.exists else "!" * not_bit.negation_depth + "1"
         
         print(f"    NOT({display}) = {not_display}")
         
         # Check for information loss in double NOT
         not_not_result = existence_not(not_result)
-        not_not_display = "1" if not_not_result.exists else "!" * not_not_result.negation_depth + "1"
+        # Since existence_not returns an array, we need to access the first bit
+        not_not_bit = not_not_result.bits[0] if len(not_not_result.bits) > 0 else ExistenceBit("!1")
+        not_not_display = "1" if not_not_bit.exists else "!" * not_not_bit.negation_depth + "1"
         
         print(f"    NOT(NOT({display})) = {not_not_display}")
         
-        if (bit.exists == not_not_result.exists) and (bit.negation_depth == not_not_result.negation_depth):
+        if (bit.exists == not_not_bit.exists) and (bit.negation_depth == not_not_bit.negation_depth):
             print_success("    No information loss ✓")
         else:
             print_error("    INFORMATION LOSS DETECTED ✗")
             print(f"    Original negation depth: {bit.negation_depth}")
-            print(f"    Final negation depth: {not_not_result.negation_depth}")
+            print(f"    Final negation depth: {not_not_bit.negation_depth}")
     
     # b. AND operation causing information loss
     print("\n  b. AND operation:")
@@ -249,12 +265,14 @@ def demonstrate_information_loss():
         b_display = "1" if b.exists else "!" * b.negation_depth + "1"
         
         and_result = existence_and(a, b)
-        and_display = "1" if and_result.exists else "!" * and_result.negation_depth + "1"
+        # Since existence_and returns an array, we need to access the first bit
+        and_bit = and_result.bits[0] if len(and_result.bits) > 0 else ExistenceBit("!1")
+        and_display = "1" if and_bit.exists else "!" * and_bit.negation_depth + "1"
         
         print(f"    {a_display} AND {b_display} = {and_display}")
         
         # Check for potential information loss
-        if not and_result.exists and and_result.negation_depth > max(a.negation_depth, b.negation_depth):
+        if not and_bit.exists and and_bit.negation_depth > max(a.negation_depth, b.negation_depth):
             print_error("    INFORMATION GAIN DETECTED ✗")
             print("    The result has more information (higher negation depth)")
             print("    than either of the inputs.")
@@ -271,10 +289,15 @@ def demonstrate_information_loss():
     or_result = existence_or(bit_a, ExistenceBit(1))  # 1
     final_result = existence_and(xor_result, or_result)  # !!1
     
+    # Extract result bits
+    xor_bit = xor_result.bits[0] if len(xor_result.bits) > 0 else ExistenceBit("!1")
+    or_bit = or_result.bits[0] if len(or_result.bits) > 0 else ExistenceBit("!1")
+    final_bit = final_result.bits[0] if len(final_result.bits) > 0 else ExistenceBit("!1")
+    
     print(f"    Chain: (!1 XOR !1) AND (!1 OR 1)")
-    print(f"    Step 1: !1 XOR !1 = {'1' if xor_result.exists else '!' * xor_result.negation_depth + '1'}")
-    print(f"    Step 2: !1 OR 1 = {'1' if or_result.exists else '!' * or_result.negation_depth + '1'}")
-    print(f"    Final: !!1 AND 1 = {'1' if final_result.exists else '!' * final_result.negation_depth + '1'}")
+    print(f"    Step 1: !1 XOR !1 = {'1' if xor_bit.exists else '!' * xor_bit.negation_depth + '1'}")
+    print(f"    Step 2: !1 OR 1 = {'1' if or_bit.exists else '!' * or_bit.negation_depth + '1'}")
+    print(f"    Final: !!1 AND 1 = {'1' if final_bit.exists else '!' * final_bit.negation_depth + '1'}")
     
     # Try to recover original bits (impossible)
     print("    Can we recover the original bits from the result?")
@@ -319,18 +342,19 @@ def demonstrate_information_loss():
     current_exist = exist_state
     for i, input_bit in enumerate(input_sequence):
         input_exist = ExistenceBit(input_bit)
-        next_exist = existence_next_state(current_exist, input_exist)
+        next_exist_array = existence_next_state(current_exist, input_exist)
+        next_exist_bit = next_exist_array.bits[0] if len(next_exist_array.bits) > 0 else ExistenceBit("!1")
         
         current_display = "1" if current_exist.exists else "!" * current_exist.negation_depth + "1"
-        next_display = "1" if next_exist.exists else "!" * next_exist.negation_depth + "1"
+        next_display = "1" if next_exist_bit.exists else "!" * next_exist_bit.negation_depth + "1"
         input_display = "1" if input_exist.exists else "!" * input_exist.negation_depth + "1"
         
         print(f"    Input: {input_display}, State: {current_display} -> {next_display}")
-        current_exist = next_exist
+        current_exist = next_exist_bit
         
         # Check for increasing negation depth
-        if not next_exist.exists and next_exist.negation_depth > current_exist.negation_depth:
-            print_error(f"    NEGATION DEPTH INCREASED TO {next_exist.negation_depth} ✗")
+        if not next_exist_bit.exists and next_exist_bit.negation_depth > current_exist.negation_depth:
+            print_error(f"    NEGATION DEPTH INCREASED TO {next_exist_bit.negation_depth} ✗")
             print("    State information is becoming increasingly complex.")
     
     print("\nConclusion:")
@@ -360,7 +384,7 @@ def demonstrate_void_state():
     
     # Create some bits with increasing negation depths
     void_bits = [
-        ExistenceBit(0, negation_depth=i) for i in range(1, 6)
+        ExistenceBit("!" * i + "1") for i in range(1, 6)
     ]
     
     # Display them
@@ -389,17 +413,20 @@ def demonstrate_void_state():
         b = void_bits[i]
         result = existence_xor(a, b)
         
+        # Since existence_xor returns an array, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        
         a_display = "!" * a.negation_depth + "1"
         b_display = "!" * b.negation_depth + "1"
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"    {a_display} XOR {b_display} = {result_display}")
         
         # Check for void depth increase
-        if not result.exists and result.negation_depth > max(a.negation_depth, b.negation_depth):
-            print_warning(f"    Void depth increased from {a.negation_depth} to {result.negation_depth}")
+        if not result_bit.exists and result_bit.negation_depth > max(a.negation_depth, b.negation_depth):
+            print_warning(f"    Void depth increased from {a.negation_depth} to {result_bit.negation_depth}")
             
-            if result.negation_depth >= 4:
+            if result_bit.negation_depth >= 4:
                 print_error("    CRITICAL VOID CREATED ✗")
                 print("    This represents a computational singularity.")
     
@@ -408,7 +435,7 @@ def demonstrate_void_state():
     
     # Show how a deep void "infects" normal operations
     normal_bit = ExistenceBit(1)  # 1
-    deep_void = ExistenceBit(0, negation_depth=4)  # !!!!1
+    deep_void = ExistenceBit("!!!!1")  # !!!!1
     
     operations = [
         ("AND", lambda a, b: existence_and(a, b)),
@@ -418,12 +445,16 @@ def demonstrate_void_state():
     
     for op_name, op_func in operations:
         result = op_func(normal_bit, deep_void)
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        
+        # Since operations return arrays, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"    1 {op_name} !!!!1 = {result_display}")
         
         # Check if void propagated
-        if not result.exists and result.negation_depth >= 3:
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        if not result_bit.exists and result_bit.negation_depth >= 3:
             print_error("    VOID PROPAGATION DETECTED ✗")
             print("    The void state has 'infected' the result.")
     
@@ -440,13 +471,16 @@ def demonstrate_void_state():
     print("    │    A    │    B    │  A AND B│")
     print("    ├─────────┼─────────┼─────────┤")
     
-    test_bits = [ExistenceBit(1), ExistenceBit(0), ExistenceBit(0, negation_depth=3)]
+    test_bits = [ExistenceBit(1), ExistenceBit(0), ExistenceBit("!!!1")]
     displays = ["1", "!1", "!!!1"]
     
     for i, a in enumerate(test_bits):
         for j, b in enumerate(test_bits):
             result = existence_and(a, b)
-            result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+            
+            # Since existence_and returns an array, we need to access the first bit
+            result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+            result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
             print(f"    │ {displays[i]:^7} │ {displays[j]:^7} │ {result_display:^7} │")
     
     print("    └─────────┴─────────┴─────────┘")
@@ -535,14 +569,19 @@ def demonstrate_asymmetry():
     
     for i, bit in enumerate(bits):
         result = existence_not(bit)
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        # Since existence_not returns an array, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"    NOT({displays[i]}) = {result_display}")
     
     # Double negation
     for i, bit in enumerate(bits):
-        result = existence_not(existence_not(bit))
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        first_not = existence_not(bit)
+        result = existence_not(first_not)
+        # Since existence_not returns an array, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"    NOT(NOT({displays[i]})) = {result_display}")
         
@@ -559,7 +598,7 @@ def demonstrate_asymmetry():
     
     depths = [1, 2, 3, 4]
     for depth in depths:
-        void_bit = ExistenceBit(0, negation_depth=depth)
+        void_bit = ExistenceBit("!" * depth + "1")
         print(f"    !{'!' * (depth-1)}1: Contains {depth} levels of negation information")
     
     print("\n    This asymmetry means that while 1 is a single, fixed value,")
@@ -572,12 +611,14 @@ def demonstrate_asymmetry():
     print("    AND operation with deep voids:")
     
     one_bit = ExistenceBit(1)
-    void_bits = [ExistenceBit(0, negation_depth=i) for i in range(1, 5)]
+    void_bits = [ExistenceBit("!" * i + "1") for i in range(1, 5)]
     
     for i, void in enumerate(void_bits):
         result = existence_and(one_bit, void)
+        # Since existence_and returns an array, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
         void_display = "!" * void.negation_depth + "1"
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"    1 AND {void_display} = {result_display}")
     
@@ -610,18 +651,20 @@ def demonstrate_asymmetry():
     print("\n  In existence semantics:")
     
     # XOR identity test
-    test_bits = [ExistenceBit(1), ExistenceBit(0), ExistenceBit(0, negation_depth=2)]
+    test_bits = [ExistenceBit(1), ExistenceBit(0), ExistenceBit("!!1")]
     test_displays = ["1", "!1", "!!1"]
     
     for i, bit in enumerate(test_bits):
         traditional_identity = ExistenceBit(0)
         result = existence_xor(bit, traditional_identity)
-        result_display = "1" if result.exists else "!" * result.negation_depth + "1"
+        # Since existence_xor returns an array, we need to access the first bit
+        result_bit = result.bits[0] if len(result.bits) > 0 else ExistenceBit("!1")
+        result_display = "1" if result_bit.exists else "!" * result_bit.negation_depth + "1"
         
         print(f"  {test_displays[i]} XOR !1 = {result_display}")
         
         # Check if identity property holds
-        if (bit.exists and result.exists) or (not bit.exists and not result.exists and bit.negation_depth == result.negation_depth):
+        if (bit.exists and result_bit.exists) or (not bit.exists and not result_bit.exists and bit.negation_depth == result_bit.negation_depth):
             print_success("  Identity property preserved ✓")
         else:
             print_error("  IDENTITY PROPERTY BROKEN ✗")
@@ -644,8 +687,8 @@ def demonstrate_asymmetry():
     ]
     
     test_pairs = [
-        (ExistenceBit(1), ExistenceBit(0, negation_depth=2)),  # 1 and !!1
-        (ExistenceBit(0), ExistenceBit(0, negation_depth=3))   # !1 and !!!1
+        (ExistenceBit(1), ExistenceBit("!!1")),  # 1 and !!1
+        (ExistenceBit(0), ExistenceBit("!!!1"))   # !1 and !!!1
     ]
     
     for op_name, op_func in operations:
@@ -658,13 +701,17 @@ def demonstrate_asymmetry():
             result1 = op_func(a, b)
             result2 = op_func(b, a)
             
-            result1_display = "1" if result1.exists else "!" * result1.negation_depth + "1"
-            result2_display = "1" if result2.exists else "!" * result2.negation_depth + "1"
+            # Since operations return arrays, we need to access the first bit
+            result1_bit = result1.bits[0] if len(result1.bits) > 0 else ExistenceBit("!1")
+            result2_bit = result2.bits[0] if len(result2.bits) > 0 else ExistenceBit("!1")
+            
+            result1_display = "1" if result1_bit.exists else "!" * result1_bit.negation_depth + "1"
+            result2_display = "1" if result2_bit.exists else "!" * result2_bit.negation_depth + "1"
             
             print(f"  {a_display} {op_name} {b_display} = {result1_display}")
             print(f"  {b_display} {op_name} {a_display} = {result2_display}")
             
-            if (result1.exists == result2.exists) and (not result1.exists or result1.negation_depth == result2.negation_depth):
+            if (result1_bit.exists == result2_bit.exists) and (not result1_bit.exists or result1_bit.negation_depth == result2_bit.negation_depth):
                 print_success("  Commutativity preserved ✓")
             else:
                 print_error("  COMMUTATIVITY BROKEN ✗")

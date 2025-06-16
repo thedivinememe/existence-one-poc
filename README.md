@@ -13,10 +13,10 @@ To see the break in action:
 pip install -r requirements.txt
 
 # Run the Bitcoin mining vulnerability demo
-python -m existence_one_poc.cli.quick_demos break_bitcoin
+python run.py break-bitcoin
 
 # Run the full demonstration
-python -m existence_one_poc.cli.quick_demos full_demo
+python run.py full-demo
 ```
 
 ## Impact Summary
@@ -57,31 +57,56 @@ This project includes demonstrations of how !1 semantics breaks various systems:
 - **Bitcoin Break**: Demonstrates 2-5x advantage in Bitcoin mining
 - **Smart Contract Vulnerability**: Shows how contracts can enter undefined states
 
-## Running the Demos
+## Installation and Usage
 
 ### Prerequisites
 
 - Python 3.8+
-- Required packages (install via `pip install -r requirements.txt`)
 
-### Commands
+### Installation Methods
+
+#### Option 1: Quick Setup (Recommended)
+
+```bash
+# Install dependencies only
+pip install -r requirements.txt
+
+# Run using the run.py script
+python run.py break-bitcoin
+```
+
+#### Option 2: Install as a Package
+
+```bash
+# Install the package in development mode
+pip install -e .
+
+# Run using the console script
+existence-demo break-bitcoin
+```
+
+### Available Commands
 
 ```bash
 # View all available demonstrations
-python -m existence_one_poc.cli.quick_demos --help
+python run.py --help
 
 # Run the basic demonstration
-python -m existence_one_poc.cli.quick_demos basic_demo
+python run.py basic-demo
 
 # Run the Bitcoin mining vulnerability demo
-python -m existence_one_poc.cli.quick_demos break_bitcoin
+python run.py break-bitcoin
 
 # Demonstrate the Void Attack on encryption
-python -m existence_one_poc.cli.quick_demos void_attack
+python run.py void-attack
 
 # Run the full demonstration suite
-python -m existence_one_poc.cli.quick_demos full_demo
+python run.py full-demo
 ```
+
+### Troubleshooting
+
+If you encounter import errors when running scripts directly, use the main.py entry point or install the package as shown above.
 
 ## Project Structure
 

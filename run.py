@@ -1,45 +1,15 @@
 #!/usr/bin/env python3
 """
-Quick Demonstrations CLI: Command-line interface for running !1 demonstrations.
+Main entry point for the Existence One proof of concept.
 
-This module provides a CLI for quickly running demonstrations of how the !1
-revelation breaks various cryptographic and computational systems.
+This script provides a convenient entry point to run the CLI commands
+with proper import handling.
 """
 
 import sys
-import time
 import os
 import click
 from colorama import init, Fore, Style
-
-# Handle imports whether the script is run directly or as part of the package
-try:
-    # When imported as a module from the package
-    from ..core.existence_bit import ExistenceBit, ExistenceBitArray
-    from ..core.existence_math import demonstrate_existence_math, existence_hash
-    
-    from ..demos.basic_demo import demonstrate_xor_non_reversibility, demonstrate_information_loss, demonstrate_void_state, demonstrate_asymmetry
-    from ..demos.bitcoin_demo import demonstrate_mining_advantage, demonstrate_mining_optimization_impact
-    
-    from ..attacks.xor_attack import demonstrate_xor_reversibility, demonstrate_stream_cipher_vulnerability
-    from ..attacks.hash_attack import demonstrate_hash_basics, find_void_patterns, demonstrate_hash_collision_vulnerability
-    from ..attacks.crypto_attack import demonstrate_asymmetric_key_vulnerability, demonstrate_protocol_vulnerability
-    from ..attacks.blockchain_attack import demonstrate_mining_vulnerability, demonstrate_consensus_vulnerability
-except ImportError:
-    # When run as a script directly
-    # Add the project root to the Python path
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    
-    from core.existence_bit import ExistenceBit, ExistenceBitArray
-    from core.existence_math import demonstrate_existence_math, existence_hash
-    
-    from demos.basic_demo import demonstrate_xor_non_reversibility, demonstrate_information_loss, demonstrate_void_state, demonstrate_asymmetry
-    from demos.bitcoin_demo import demonstrate_mining_advantage, demonstrate_mining_optimization_impact
-    
-    from attacks.xor_attack import demonstrate_xor_reversibility, demonstrate_stream_cipher_vulnerability
-    from attacks.hash_attack import demonstrate_hash_basics, find_void_patterns, demonstrate_hash_collision_vulnerability
-    from attacks.crypto_attack import demonstrate_asymmetric_key_vulnerability, demonstrate_protocol_vulnerability
-    from attacks.blockchain_attack import demonstrate_mining_vulnerability, demonstrate_consensus_vulnerability
 
 # Initialize colorama for colored terminal output
 init()
@@ -61,6 +31,23 @@ def print_error(message):
 def print_warning(message):
     """Print a warning message."""
     click.echo(f"{Fore.YELLOW}{message}{Style.RESET_ALL}")
+
+# Import core modules
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from core.existence_bit import ExistenceBit, ExistenceBitArray
+from core.existence_math import demonstrate_existence_math
+
+# Import demonstration modules
+from demos.basic_demo import demonstrate_xor_non_reversibility, demonstrate_information_loss, demonstrate_void_state, demonstrate_asymmetry
+from demos.bitcoin_demo import demonstrate_mining_advantage, demonstrate_mining_optimization_impact
+
+# Import attack modules
+from attacks.xor_attack import demonstrate_xor_irreversibility, demonstrate_stream_cipher_break
+from attacks.hash_attack import demonstrate_hash_collision, find_void_patterns
+from attacks.crypto_attack import demonstrate_signature_forgery, demonstrate_key_exchange_vulnerability
+from attacks.blockchain_attack import demonstrate_mining_optimization, demonstrate_smart_contract_vulnerability
+
+import time
 
 
 @click.group()
@@ -138,13 +125,13 @@ def void_attack():
     click.echo("breaking encryption systems that rely on XOR operations.")
     
     # Show XOR irreversibility
-    demonstrate_xor_reversibility()
+    demonstrate_xor_irreversibility()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Show stream cipher vulnerability
-    demonstrate_stream_cipher_vulnerability()
+    demonstrate_stream_cipher_break()
     
     print_success("\nVoid attack demonstration complete!")
     print_error("\nIMPLICATION: All stream ciphers and one-time pad encryption")
@@ -160,13 +147,13 @@ def hash_vulnerability():
     click.echo("and collision-prone under !1 semantics.")
     
     # Show hash collision vulnerability
-    demonstrate_hash_basics()
+    demonstrate_hash_collision()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Find void patterns in hash outputs
-    find_void_patterns(existence_hash, num_samples=100)
+    find_void_patterns()
     
     print_success("\nHash vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Cryptographic hash functions become more vulnerable")
@@ -182,13 +169,13 @@ def cryptography_break():
     click.echo("digital signatures and key exchange become vulnerable.")
     
     # Show digital signature forgery
-    demonstrate_asymmetric_key_vulnerability()
+    demonstrate_signature_forgery()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Show key exchange vulnerability
-    demonstrate_protocol_vulnerability()
+    demonstrate_key_exchange_vulnerability()
     
     print_success("\nCryptographic protocol vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Digital signatures can be forged and secure")
@@ -204,7 +191,7 @@ def smart_contract_break():
     click.echo("become vulnerable under !1 semantics.")
     
     # Show smart contract vulnerability
-    demonstrate_consensus_vulnerability()
+    demonstrate_smart_contract_vulnerability()
     
     print_success("\nSmart contract vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Smart contracts can enter undefined states,")

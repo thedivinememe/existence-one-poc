@@ -8,10 +8,16 @@ and reliability of decentralized applications.
 
 import random
 import time
+import sys
+import os
 import matplotlib.pyplot as plt
 from colorama import init, Fore, Style
-from ..core.existence_bit import ExistenceBit, ExistenceBitArray
-from ..core.existence_math import (
+
+# Add the project root to the Python path to enable absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from core.existence_bit import ExistenceBit, ExistenceBitArray
+from core.existence_math import (
     existence_add,
     existence_multiply,
     existence_modulo,

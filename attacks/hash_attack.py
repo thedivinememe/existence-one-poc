@@ -9,11 +9,17 @@ and predictable patterns in the hash outputs.
 import hashlib
 import time
 import random
+import sys
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from colorama import init, Fore, Style
-from ..core.existence_bit import ExistenceBit, ExistenceBitArray
-from ..core.existence_math import existence_hash, analyze_cryptographic_strength
+
+# Add the project root to the Python path to enable absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from core.existence_bit import ExistenceBit, ExistenceBitArray
+from core.existence_math import existence_hash, analyze_cryptographic_strength
 
 # Initialize colorama for colored terminal output
 init()
@@ -126,7 +132,7 @@ def demonstrate_hash_basics():
         if hash1_exist.bits[i] != hash2_exist.bits[i]:
             bit_diff_exist += 1
             # Count additional void differences
-            if hash1_exist.bits[i].is_void or hash2_exist.bits[i].is_void:
+            if not hash1_exist.bits[i].exists or not hash2_exist.bits[i].exists:
                 void_diff_exist += 1
     
     # Calculate percentage of bits that differ
@@ -205,7 +211,7 @@ def find_void_patterns(hash_function, num_samples=1000, algorithm='sha256'):
             consecutive_zeros = 0
             max_consecutive_zeros = 0
             for bit in hash_result.bits:
-                if not bit.existence_value:  # This is a !1 or deeper void
+                if not bit.exists:  # This is a !1 or deeper void
                     consecutive_zeros += 1
                     max_consecutive_zeros = max(max_consecutive_zeros, consecutive_zeros)
                 else:
