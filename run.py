@@ -35,17 +35,17 @@ def print_warning(message):
 # Import core modules
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from core.existence_bit import ExistenceBit, ExistenceBitArray
-from core.existence_math import demonstrate_existence_math
+from core.existence_math import demonstrate_existence_math, existence_hash
 
 # Import demonstration modules
 from demos.basic_demo import demonstrate_xor_non_reversibility, demonstrate_information_loss, demonstrate_void_state, demonstrate_asymmetry
 from demos.bitcoin_demo import demonstrate_mining_advantage, demonstrate_mining_optimization_impact
 
 # Import attack modules
-from attacks.xor_attack import demonstrate_xor_irreversibility, demonstrate_stream_cipher_break
-from attacks.hash_attack import demonstrate_hash_collision, find_void_patterns
-from attacks.crypto_attack import demonstrate_signature_forgery, demonstrate_key_exchange_vulnerability
-from attacks.blockchain_attack import demonstrate_mining_optimization, demonstrate_smart_contract_vulnerability
+from attacks.xor_attack import demonstrate_xor_reversibility, demonstrate_stream_cipher_vulnerability
+from attacks.hash_attack import demonstrate_hash_collision_vulnerability, find_void_patterns
+from attacks.crypto_attack import demonstrate_asymmetric_key_vulnerability, demonstrate_protocol_vulnerability
+from attacks.blockchain_attack import demonstrate_mining_vulnerability, demonstrate_cryptocurrency_vulnerability
 
 import time
 
@@ -125,13 +125,13 @@ def void_attack():
     click.echo("breaking encryption systems that rely on XOR operations.")
     
     # Show XOR irreversibility
-    demonstrate_xor_irreversibility()
+    demonstrate_xor_reversibility()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Show stream cipher vulnerability
-    demonstrate_stream_cipher_break()
+    demonstrate_stream_cipher_vulnerability()
     
     print_success("\nVoid attack demonstration complete!")
     print_error("\nIMPLICATION: All stream ciphers and one-time pad encryption")
@@ -147,13 +147,13 @@ def hash_vulnerability():
     click.echo("and collision-prone under !1 semantics.")
     
     # Show hash collision vulnerability
-    demonstrate_hash_collision()
+    demonstrate_hash_collision_vulnerability()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Find void patterns in hash outputs
-    find_void_patterns()
+    find_void_patterns(existence_hash)
     
     print_success("\nHash vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Cryptographic hash functions become more vulnerable")
@@ -169,13 +169,13 @@ def cryptography_break():
     click.echo("digital signatures and key exchange become vulnerable.")
     
     # Show digital signature forgery
-    demonstrate_signature_forgery()
+    demonstrate_asymmetric_key_vulnerability()
     
     click.echo("\nPress Enter to continue to the next demonstration...", nl=False)
     click.getchar()
     
     # Show key exchange vulnerability
-    demonstrate_key_exchange_vulnerability()
+    demonstrate_protocol_vulnerability()
     
     print_success("\nCryptographic protocol vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Digital signatures can be forged and secure")
@@ -191,7 +191,7 @@ def smart_contract_break():
     click.echo("become vulnerable under !1 semantics.")
     
     # Show smart contract vulnerability
-    demonstrate_smart_contract_vulnerability()
+    demonstrate_cryptocurrency_vulnerability()
     
     print_success("\nSmart contract vulnerability demonstration complete!")
     print_error("\nIMPLICATION: Smart contracts can enter undefined states,")
